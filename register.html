@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<script> if (window.localStorage.userId) location.replace('main.html'); </script>
+		<title>Feedbak</title>
+		<link href="img/favicon.ico" rel="icon" type="image/x-icon"/>
+		<link href="css/app.css" rel="stylesheet"/>
+		<script src="js/app.js"></script>
+	</head>
+	<body>
+		<div class="header">
+			<img id="headerImage" src="img/feedbak.png" alt="Feedbak"/>
+		</div>
+		<div class="instructions">Please take a minute to register.</div>
+		<div class="content">
+			<div style="padding:0px 5px;text-align:left;">
+				<ul>
+					<li>
+						<label for="name">Name:</label><br/>
+						<input id="name" type="text" required="required"/>
+					</li>
+					<li>
+						<label for="homePhone">Phone (Home):</label><br/>
+						<input id="homePhone" type="tel" required="required"/>
+					</li>
+					<li>
+						<label for="workPhone">Phone (Work):</label><br/>
+						<input id="workPhone" type="tel" required="required"/>
+					</li>
+					<li>
+						<label for="cellPhone">Phone (Cell):</label><br/>
+						<input id="cellPhone" type="tel" required="required"/>
+					</li>
+					<li>
+						<label for="email">Email:</label><br/>
+						<input id="email" type="email" required="required"/>
+					</li>
+					<li>
+						<label for="dateOfBirth">Date of Birth (yyyy-mm-dd):</label><br/>
+						<input id="dateOfBirth" type="text" required="required"/>
+					</li>
+					<li>
+						<label for="gender">Gender:</label><br/>
+						<select id="gender">
+							<option value="M">M</option>
+							<option value="F">F</option>
+						</select>
+					</li>
+					<li>
+						<label for="country">Country:</label><br/>
+						<input id="country" type="text" required="required"/>
+					</li>
+					<li>
+						<label for="disabilities">Disabilities:</label><br/>
+						<textarea id="disabilities"></textarea>
+					</li>
+				</ul>
+				<div class="buttonContainer">
+					<input id="submitButton" type="button" value="SUBMIT"/>
+				</div>
+			</div>
+		</div>
+		<script>
+			var name, homePhone, workPhone, cellPhone, email, dateOfBirth, gender, country, disability;
+			
+			document.getElementById('submitButton').addEventListener('click',function() { if ( valid() ) submit(); },false);
+			
+			function valid() {
+				name = document.getElementById('name').value;
+				homePhone = document.getElementById('homePhone').value;
+				workPhone = document.getElementById('workPhone').value;
+				cellPhone = document.getElementById('cellPhone').value;
+				email = document.getElementById('email').value;
+				dateOfBirth = document.getElementById('dateOfBirth').value;
+				gender = document.getElementById('gender').value;
+				country = document.getElementById('country').value;
+				disabilities = document.getElementById('disabilities').value;
+				
+				name = name.trim();
+				homePhone = homePhone.trim();
+				workPhone = workPhone.trim();
+				cellPhone = cellPhone.trim();
+				email = email.trim();
+				dateOfBirth = dateOfBirth.trim();
+				country = country.trim();
+				
+				// ensure all fields are entered.
+				if (name == '' || homePhone == '' || workPhone == '' || cellPhone == '' || email == '' || dateOfBirth == '' || country == '' ) { 
+					navigator.notification.alert('All fields except disabilities are required.',null,'Invalid','Okay.');
+					return false;
+				}
+				return true;
+			}
+			
+			function submit() {
+				var requestTimeout;
+				var xhr = new XMLHttpRequest();
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4) {
+						if (xhr.status == 200) {
+							if (requestTimeout) clearTimeout(requestTimeout);
+							var response = JSON.parse(xhr.responseText);
+							if (response['userId']) {
+								window.localStorage.userId = response['userId'];
+								location.replace('main.html');
+							} else if (response['invalid']) {
+								navigator.notification.alert(response['invalid'],null,'Invalid','Okay');
+							}
+						} else {
+							navigator.notification.alert('Error: ' + xhr.status + ' ' + xhr.statusText + ', Headers: ' + xhr.getAllResponseHeaders(), null, 'Error', 'Okay' );
+						}
+					}
+				}
+				
+				// create the request.
+				xhr.open('POST',host + '/feedbak/server/registeruser.php',true);
+				var postData = 'name=' + name + '&homePhone=' + homePhone + '&workPhone=' + workPhone + '&cellPhone=' + cellPhone + '&email=' + email + '&dateOfBirth=' + dateOfBirth + '&gender=' + gender + '&country=' + country + '&disabilities=' + disabilities;
+				
+				// Send the proper header information along with the request
+				xhr.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+				//xhr.setRequestHeader("Content-length", postData.length);
+				//xhr.setRequestHeader("Connection", "close");
+				xhr.send(postData);
+				
+				// Set a five second request timeout for if there is no/a weak connection.
+				requestTimeout = setTimeout(function() {  xhr.abort(); navigator.notification.alert('Unable to contact the server.'); }, 60000);
+			}
+		</script>
+	</body>
+</html>

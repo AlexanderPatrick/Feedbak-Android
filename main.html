@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8"/>
+		<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+		<title>Feedbak</title>
+		<link href="img/favicon.ico" rel="icon" type="image/x-icon"/>
+		<link href="css/app.css" rel="stylesheet"/>
+		<style>
+			h1 {
+				text-align:center;
+			}
+			
+			li {
+				font-size:1.5em;
+			}
+		</style>
+		<script src="js/app.js"></script>
+	</head>
+	<body>
+		<div class="header">
+			<img id="headerImage" src="img/feedbak.png" alt="Feedbak"/>
+		</div>
+		<div class="instructions">Tap the branch to fill out the survey.</div>
+		<div class="content">
+			<h1>Available Surveys</h1>
+			<ul id="branchList"></ul>
+		</div>
+		<script>
+			var watchId, latitude = 0, longitude = 0, distanceThreshold = 0.0005;
+			
+			window.addEventListener('load', getLocation, false);
+			
+			function getLocation() {
+				navigator.geolocation.getCurrentPosition(geolocationSuccess);
+				watchId = navigator.geolocation.watchPosition(geolocationSuccess); 
+			}
+			
+			function geolocationSuccess(position) {
+				if (latitude != position.coords.latitude || longitude != position.coords.longitude) {
+					latitude = position.coords.latitude;
+					longitude = position.coords.longitude;
+					requestBranchList();
+				}
+			}
+				
+			function requestBranchList() {
+				var requestTimeout;
+				var xhr = new XMLHttpRequest();
+				xhr.onreadystatechange = function() {
+					if (xhr.readyState == 4) {
+						if (xhr.status == 200) {
+							if (requestTimeout) clearTimeout(requestTimeout);
+							var usingJSON = true;
+							if (usingJSON) {
+								var response = JSON.parse(xhr.responseText);
+							} else {
+								var parser = new DOMParser();
+								var response = parser.parseFromString(xhr.responseXML,'text/xml');
+								console.log(response);
+							}
+							
+							if (response['error']) {
+								navigator.notification.alert('There was a problem getting results from the server.');
+							} else {
+								var branchList = document.getElementById('branchList');
+								if (branchList != null) {
+									while (branchList.childNodes.length > 0) {
+										branchList.lastChild.removeEventListener('click');
+										branchList.removeChild(branchList.lastChild);
+									}
+									for (var i in response['branches']) {
+										var branchListItem = document.createElement('li');
+										console.log(response['branches'][i]['branch'] + ' ' + response['branches'][i]['distance']);
+										if (response['branches'][i]['distance'] < distanceThreshold) {
+											branchListItem.style.color = '#00FF00';
+										}
+										branchListItem.id = response['branches'][i]['id'];
+										branchListItem.appendChild(document.createTextNode(response['branches'][i]['branch']));
+										branchListItem.appendChild(document.createElement('hr'));
+										branchListItem.addEventListener('click',function(e){
+											navigator.geolocation.clearWatch(watchId);
+											window.location.href = 'survey.html?branchID=' + e.target.id;
+										},false);
+										branchList.appendChild(branchListItem);
+									}
+								}
+							}
+						} else {
+							alert(xhr.status);
+						}
+					}
+				}
+				
+				xhr.open('GET',host + '/feedbak/server/listnearbybranches.php?latitude=' + latitude + '&longitude=' + longitude + '&count=10&format=json',true);
+				xhr.send();
+				
+				requestTimeout = setTimeout(function() { xhr.abort(); navigator.notification.alert('Unable to contact the server.'); }, 60000);
+			}
+		</script>
+	</body>
+</html>
