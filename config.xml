@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
-<widget id="bb.com.westapps.feedbak" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
-    <name>Feedbak</name>
+<widget id="bb.com.westapps.feedbak.android" version="1.0.0" xmlns="http://www.w3.org/ns/widgets" xmlns:gap="http://phonegap.com/ns/1.0">
+    <name>Feedbak-Android</name>
     <description>
         The app allows for persons to rate companies and collects data for third parties to analyze.
     </description>
