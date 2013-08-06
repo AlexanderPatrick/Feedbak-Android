@@ -78,6 +78,10 @@ input[type="button"] {
 	height:50px;
 }
 
+select.dateSelector {
+	width: 32%;
+}
+
 textarea {
 	height:300px;
 }
