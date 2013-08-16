@@ -156,7 +156,7 @@
 				//xhr.setRequestHeader("Connection", "close");
 				xhr.send(postData);
 				
-				// Set a five second request timeout for if there is no/a weak connection.
+				// Set a one minute request timeout for if there is no/a weak connection.
 				requestTimeout = setTimeout(function() {  xhr.abort(); navigator.notification.alert('Unable to contact the server.'); }, 60000);
 			}
 		</script>
